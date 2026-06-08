@@ -20,6 +20,7 @@ import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedLensRouteImport } from './routes/_authenticated/lens'
 import { Route as AuthenticatedDailyRouteImport } from './routes/_authenticated/daily'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
 const WelcomeRoute = WelcomeRouteImport.update({
   id: '/welcome',
@@ -68,6 +69,11 @@ const AuthenticatedLensRoute = AuthenticatedLensRouteImport.update({
 const AuthenticatedDailyRoute = AuthenticatedDailyRouteImport.update({
   id: '/daily',
   path: '/daily',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
