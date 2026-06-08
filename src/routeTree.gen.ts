@@ -19,6 +19,7 @@ import { Route as AuthenticatedVoiceRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
 import { Route as AuthenticatedLensRouteImport } from './routes/_authenticated/lens'
 import { Route as AuthenticatedDailyRouteImport } from './routes/_authenticated/daily'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
 const WelcomeRoute = WelcomeRouteImport.update({
   id: '/welcome',
@@ -69,12 +70,18 @@ const AuthenticatedDailyRoute = AuthenticatedDailyRouteImport.update({
   path: '/daily',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/onboarding': typeof OnboardingRoute
   '/welcome': typeof WelcomeRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/daily': typeof AuthenticatedDailyRoute
   '/lens': typeof AuthenticatedLensRoute
   '/pulse': typeof AuthenticatedPulseRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/onboarding': typeof OnboardingRoute
   '/welcome': typeof WelcomeRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/daily': typeof AuthenticatedDailyRoute
   '/lens': typeof AuthenticatedLensRoute
   '/pulse': typeof AuthenticatedPulseRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/onboarding': typeof OnboardingRoute
   '/welcome': typeof WelcomeRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/daily': typeof AuthenticatedDailyRoute
   '/_authenticated/lens': typeof AuthenticatedLensRoute
   '/_authenticated/pulse': typeof AuthenticatedPulseRoute
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/onboarding'
     | '/welcome'
+    | '/admin'
     | '/daily'
     | '/lens'
     | '/pulse'
@@ -123,6 +133,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/onboarding'
     | '/welcome'
+    | '/admin'
     | '/daily'
     | '/lens'
     | '/pulse'
@@ -135,6 +146,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/onboarding'
     | '/welcome'
+    | '/_authenticated/admin'
     | '/_authenticated/daily'
     | '/_authenticated/lens'
     | '/_authenticated/pulse'
@@ -223,10 +235,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDailyRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDailyRoute: typeof AuthenticatedDailyRoute
   AuthenticatedLensRoute: typeof AuthenticatedLensRoute
   AuthenticatedPulseRoute: typeof AuthenticatedPulseRoute
@@ -234,6 +254,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDailyRoute: AuthenticatedDailyRoute,
   AuthenticatedLensRoute: AuthenticatedLensRoute,
   AuthenticatedPulseRoute: AuthenticatedPulseRoute,
@@ -254,3 +275,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
