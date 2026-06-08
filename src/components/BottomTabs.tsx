@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Newspaper, Sparkle, LineChart, Mic } from "lucide-react";
+import { KashfMarkSvg } from "@/components/KashfLogo";
 
 const tabs = [
   { to: "/daily", label: "Daily", Icon: Newspaper },
@@ -50,11 +51,11 @@ export function KashfMark({ className }: { className?: string }) {
   return (
     <div
       className={
-        "flex h-8 w-8 items-center justify-center rounded-md border border-primary/30 bg-gradient-to-br from-primary/25 to-transparent font-display text-sm font-bold text-primary " +
+        "flex h-9 w-9 items-center justify-center rounded-[10px] border border-border bg-[oklch(0.13_0.01_260)] " +
         (className ?? "")
       }
     >
-      K
+      <KashfMarkSvg size={20} stroke="var(--primary)" />
     </div>
   );
 }

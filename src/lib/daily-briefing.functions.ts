@@ -4,35 +4,16 @@ import { z } from "zod";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 
 const StorySchema = z.object({
-  category: z.enum([
-    "Markets",
-    "Energy",
-    "Real Estate",
-    "Tech & VC",
-    "Banking",
-    "Policy",
-    "Macro",
-    "Startups",
-    "Commodities",
-  ]),
-  region: z.enum([
-    "Saudi Arabia",
-    "UAE",
-    "Qatar",
-    "Kuwait",
-    "Bahrain",
-    "Oman",
-    "GCC",
-    "Global",
-  ]),
+  category: z.string().describe("e.g. Markets, Energy, Real Estate, Tech & VC, Banking, Policy, Macro, Startups, Commodities"),
+  region: z.string().describe("Saudi Arabia, UAE, Qatar, Kuwait, Bahrain, Oman, GCC, or Global"),
   headline: z.string(),
   summary: z.string(),
   whyItMatters: z.string(),
-  hoursAgo: z.number().min(0).max(24),
+  hoursAgo: z.number(),
 });
 
 const BriefingSchema = z.object({
-  stories: z.array(StorySchema).min(6).max(8),
+  stories: z.array(StorySchema),
 });
 
 export type GeneratedStory = z.infer<typeof StorySchema> & { id: string };
@@ -82,12 +63,27 @@ Each story must include:
 
 Tone: institutional, sober, precise. Never hype. Avoid speculation framed as fact. Treat the reader as a sophisticated GCC investor or policymaker.`;
 
-    const { object } = await generateObject({
-      model: gateway("google/gemini-3-flash-preview"),
-      schema: BriefingSchema,
-      prompt,
-      temperature: 0.9,
-    });
+    let object: z.infer<typeof BriefingSchema>;
+    try {
+      const res = await generateObject({
+        model: gateway("google/gemini-3-flash-preview"),
+        schema: BriefingSchema,
+        prompt,
+        temperature: 0.9,
+      });
+      object = res.object;
+    } catch {
+      // Fallback: looser model call with explicit JSON-mode framing
+      const res = await generateObject({
+        model: gateway("google/gemini-2.5-flash"),
+        schema: BriefingSchema,
+        prompt,
+        temperature: 0.8,
+      });
+      object = res.object;
+    }
+
+    const stories = (object.stories ?? []).slice(0, 8);
 
     return {
       date: now.toLocaleDateString("en-GB", {
@@ -98,6 +94,10 @@ Tone: institutional, sober, precise. Never hype. Avoid speculation framed as fac
       }),
       edition,
       generatedAt: now.toISOString(),
-      stories: object.stories.map((s, i) => ({ ...s, id: `${seed}-${i}` })),
+      stories: stories.map((s, i) => ({
+        ...s,
+        hoursAgo: Math.min(24, Math.max(0, Math.round(s.hoursAgo ?? 0))),
+        id: `${seed}-${i}`,
+      })),
     };
   });
