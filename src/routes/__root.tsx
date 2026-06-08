@@ -11,7 +11,6 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { BottomTabs } from "../components/BottomTabs";
 
 function NotFoundComponent() {
   return (
@@ -125,11 +124,8 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-background pb-24">
-        <div className="mx-auto max-w-md">
-          <Outlet />
-        </div>
-        <BottomTabs />
+      <div className="min-h-screen bg-background">
+        <Outlet />
       </div>
     </QueryClientProvider>
   );

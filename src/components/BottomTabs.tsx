@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Newspaper, Sparkle, LineChart, Mic } from "lucide-react";
 
 const tabs = [
-  { to: "/", label: "Daily", Icon: Newspaper },
+  { to: "/daily", label: "Daily", Icon: Newspaper },
   { to: "/lens", label: "Lens", Icon: Sparkle },
   { to: "/pulse", label: "Pulse", Icon: LineChart },
   { to: "/voice", label: "Voice", Icon: Mic },
