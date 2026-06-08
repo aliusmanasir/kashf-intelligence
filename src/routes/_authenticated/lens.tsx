@@ -6,30 +6,23 @@ import ReactMarkdown from "react-markdown";
 import { AppHeader, KashfMark } from "@/components/BottomTabs";
 import { ArrowUp, Sparkle } from "lucide-react";
 
-export const Route = createFileRoute("/lens")({
+export const Route = createFileRoute("/_authenticated/lens")({
   head: () => ({
-    meta: [
-      { title: "Kashf Lens — AI Financial Intelligence" },
-      { name: "description", content: "Ask Kashf Lens about Gulf markets, oil, business, and today's news." },
-      { property: "og:title", content: "Kashf Lens" },
-      { property: "og:description", content: "Your AI financial intelligence analyst." },
-    ],
+    meta: [{ title: "Kashf Lens — AI Financial Intelligence" }],
   }),
   component: KashfLens,
 });
 
 const suggestions = [
-  "Why did TASI hit a new high today?",
-  "Explain the Aramco LNG news simply",
-  "What is happening with Dubai property?",
-  "Will the UAE cut rates before the Fed?",
+  "Why did oil prices change today?",
+  "Summarize today's Saudi market",
+  "Explain this news simply",
+  "What's the most important Gulf story this week?",
 ];
 
 function KashfLens() {
   const transport = useRef(new DefaultChatTransport({ api: "/api/chat" })).current;
-  const { messages, sendMessage, status, error } = useChat({
-    transport,
-  });
+  const { messages, sendMessage, status, error } = useChat({ transport });
   const [input, setInput] = useState("");
   const scrollerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -37,7 +30,10 @@ function KashfLens() {
   const isLoading = status === "submitted" || status === "streaming";
 
   useEffect(() => {
-    scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
+    scrollerRef.current?.scrollTo({
+      top: scrollerRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages, status]);
 
   useEffect(() => {

@@ -1,16 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppHeader } from "@/components/BottomTabs";
+import { AppHeader, KashfMark } from "@/components/BottomTabs";
 import { episodes, type Episode } from "@/lib/kashf-data";
 import { Play, Headphones, Video, BookOpen } from "lucide-react";
 
-export const Route = createFileRoute("/voice")({
+export const Route = createFileRoute("/_authenticated/voice")({
   head: () => ({
-    meta: [
-      { title: "Kashf Voice — Podcasts, Video & Analysis" },
-      { name: "description", content: "Listen and watch Kashf's weekly and monthly analysis on Gulf markets." },
-      { property: "og:title", content: "Kashf Voice" },
-      { property: "og:description", content: "Podcasts, videos, and deep-dive analysis." },
-    ],
+    meta: [{ title: "Kashf Voice — Podcasts, Video & Analysis" }],
   }),
   component: KashfVoice,
 });
@@ -25,7 +20,7 @@ function KashfVoice() {
 
   return (
     <div>
-      <AppHeader eyebrow="Listen & watch" title="Kashf Voice" />
+      <AppHeader eyebrow="Listen & watch" title="Kashf Voice" right={<KashfMark />} />
 
       <div className="px-5 pt-4">
         <article className="overflow-hidden rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/15 via-card to-card p-5">
