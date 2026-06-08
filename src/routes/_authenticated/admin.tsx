@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { AppHeader, KashfMark } from "@/components/BottomTabs";
 import {
   checkIsAdmin,
+  claimFirstAdmin,
   createUploadUrl,
   deleteEpisode,
   listAllEpisodes,
@@ -31,15 +32,15 @@ export const Route = createFileRoute("/_authenticated/admin")({
 function AdminPage() {
   const navigate = useNavigate();
   const fetchAdmin = useServerFn(checkIsAdmin);
+  const claim = useServerFn(claimFirstAdmin);
+  const qc = useQueryClient();
+  const [claiming, setClaiming] = useState(false);
+  const [claimMsg, setClaimMsg] = useState<string | null>(null);
   const admin = useQuery({
     queryKey: ["is-admin"],
     queryFn: () => fetchAdmin(),
     staleTime: 5 * 60_000,
   });
-
-  useEffect(() => {
-    if (admin.data && !admin.data.isAdmin) navigate({ to: "/voice", replace: true });
-  }, [admin.data, navigate]);
 
   if (admin.isLoading)
     return (
@@ -50,8 +51,46 @@ function AdminPage() {
 
   if (!admin.data?.isAdmin)
     return (
-      <div className="px-6 py-16 text-center">
-        <p className="text-sm text-muted-foreground">Restricted.</p>
+      <div className="mx-auto max-w-sm px-6 py-20 text-center">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-primary">
+          Studio access
+        </p>
+        <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight">
+          Restricted area
+        </h2>
+        <p className="mt-3 text-sm text-muted-foreground">
+          The Kashf Studio is reserved for editorial administrators. If you are
+          the first member of this workspace, you can claim admin access now.
+        </p>
+        <button
+          disabled={claiming}
+          onClick={async () => {
+            setClaiming(true);
+            try {
+              const res = await claim();
+              if (res.granted) {
+                qc.invalidateQueries({ queryKey: ["is-admin"] });
+              } else {
+                setClaimMsg(res.reason ?? "An admin already exists.");
+              }
+            } catch (e) {
+              setClaimMsg(e instanceof Error ? e.message : "Failed");
+            } finally {
+              setClaiming(false);
+            }
+          }}
+          className="mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+        >
+          {claiming && <Loader2 className="h-4 w-4 animate-spin" />}
+          Claim admin access
+        </button>
+        {claimMsg && <p className="mt-4 text-xs text-muted-foreground">{claimMsg}</p>}
+        <button
+          onClick={() => navigate({ to: "/voice" })}
+          className="mt-6 block w-full text-xs text-muted-foreground hover:text-foreground"
+        >
+          Back to Kashf Voice
+        </button>
       </div>
     );
 

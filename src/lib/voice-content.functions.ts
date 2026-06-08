@@ -96,6 +96,25 @@ export const checkIsAdmin = createServerFn({ method: "GET" })
     return { isAdmin: !!data };
   });
 
+// One-time bootstrap: the first signed-in user to call this becomes admin.
+// After any admin exists, this is a no-op.
+export const claimFirstAdmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ granted: boolean; reason?: string }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { count, error: countErr } = await supabaseAdmin
+      .from("user_roles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "admin");
+    if (countErr) throw new Error(countErr.message);
+    if ((count ?? 0) > 0) return { granted: false, reason: "Admin already exists" };
+    const { error } = await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: context.userId, role: "admin" });
+    if (error) throw new Error(error.message);
+    return { granted: true };
+  });
+
 async function assertAdmin(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
