@@ -14,10 +14,10 @@ export const Route = createFileRoute("/_authenticated/lens")({
 });
 
 const suggestions = [
-  "Why did oil prices change today?",
-  "Summarize today's Saudi market",
-  "Explain this news simply",
-  "What's the most important Gulf story this week?",
+  "What happened in Saudi markets today?",
+  "Explain today's oil movement",
+  "Summarize today's top stories",
+  "What should investors watch next?",
 ];
 
 function KashfLens() {
