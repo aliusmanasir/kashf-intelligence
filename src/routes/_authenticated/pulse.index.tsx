@@ -5,7 +5,7 @@ import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { Sparkline, seededSeries } from "@/components/Sparkline";
 import { motion } from "framer-motion";
 
-export const Route = createFileRoute("/_authenticated/pulse")({
+export const Route = createFileRoute("/_authenticated/pulse/")({
   head: () => ({
     meta: [{ title: "Kashf Pulse — Gulf & Global Markets" }],
   }),
