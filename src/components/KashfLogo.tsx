@@ -1,13 +1,12 @@
 /**
- * Kashf brand mark — "Strata"
+ * Kashf brand mark — "Horizon"
  *
- * Three horizontal bands of layered information — top peeled back, middle
- * fully revealed, bottom advancing — with a single luminous point of insight
- * emerging on the middle horizon. No letters, no monogram, no candlesticks,
- * no arrows. The mark represents signal cutting through noise: the moment of
- * revelation (kashf, كشف) that gives the product its name.
+ * A medallion: thin institutional ring, a precise horizon line bisecting it,
+ * and a half-disc rising from that horizon. The mark reads as dawn — the
+ * literal meaning of kashf (كشف): unveiling, revelation, what was hidden
+ * becoming seen. Coin-like and quiet enough to age into a logo people trust.
  *
- * Designed to read at 16px favicon scale and 200px+ hero/app-icon scale.
+ * Reads cleanly from 16px favicon to 200px+ hero scale.
  */
 export function KashfMarkSvg({
   size = 64,
@@ -28,14 +27,12 @@ export function KashfMarkSvg({
       className={className}
       aria-hidden="true"
     >
-      {/* Top stratum — peeled back, revealing what lies beneath */}
-      <line x1="20" y1="30" x2="60" y2="30" stroke={stroke} strokeWidth="6" strokeLinecap="round" opacity="0.45" />
-      {/* Middle stratum — fully revealed horizon */}
-      <line x1="20" y1="50" x2="80" y2="50" stroke={stroke} strokeWidth="6" strokeLinecap="round" />
-      {/* Bottom stratum — advancing from the right */}
-      <line x1="40" y1="70" x2="80" y2="70" stroke={stroke} strokeWidth="6" strokeLinecap="round" opacity="0.7" />
-      {/* The point of insight — signal emerging on the revealed horizon */}
-      <circle cx="80" cy="50" r="6" fill={stroke} />
+      {/* Outer ring — the institutional medallion */}
+      <circle cx="50" cy="50" r="44" stroke={stroke} strokeWidth="3" />
+      {/* Horizon line — the line of revelation */}
+      <line x1="14" y1="56" x2="86" y2="56" stroke={stroke} strokeWidth="3" strokeLinecap="round" />
+      {/* Rising half-disc — what emerges */}
+      <path d="M28 56 A22 22 0 0 1 72 56 Z" fill={stroke} />
     </svg>
   );
 }
