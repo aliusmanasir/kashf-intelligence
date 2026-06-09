@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Newspaper, Sparkle, LineChart, Mic } from "lucide-react";
+import { Newspaper, Sparkle, LineChart, Mic, User } from "lucide-react";
 import { KashfMarkSvg } from "@/components/KashfLogo";
 
 const tabs = [
@@ -41,7 +41,10 @@ export function AppHeader({ eyebrow, title, right }: { eyebrow?: string; title: 
           ) : null}
           <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
         </div>
-        {right}
+        <div className="flex items-center gap-2">
+          {right}
+          <ProfileButton />
+        </div>
       </div>
     </header>
   );
@@ -57,5 +60,17 @@ export function KashfMark({ className }: { className?: string }) {
     >
       <KashfMarkSvg size={20} stroke="var(--primary)" />
     </div>
+  );
+}
+
+export function ProfileButton() {
+  return (
+    <Link
+      to="/profile"
+      aria-label="Profile"
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:text-foreground"
+    >
+      <User className="h-4 w-4" strokeWidth={1.75} />
+    </Link>
   );
 }
