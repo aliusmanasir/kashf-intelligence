@@ -1,20 +1,32 @@
 import { createServerFn } from "@tanstack/react-start";
-import { generateObject } from "ai";
+import { generateText } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 
 const StorySchema = z.object({
-  category: z.string().describe("e.g. Markets, Energy, Real Estate, Tech & VC, Banking, Policy, Macro, Startups, Commodities"),
-  region: z.string().describe("Saudi Arabia, UAE, Qatar, Kuwait, Bahrain, Oman, GCC, or Global"),
+  category: z.string(),
+  region: z.string(),
   headline: z.string(),
   summary: z.string(),
   whyItMatters: z.string(),
   hoursAgo: z.number(),
 });
+const BriefingSchema = z.object({ stories: z.array(StorySchema) });
 
-const BriefingSchema = z.object({
-  stories: z.array(StorySchema),
-});
+function extractJSON(raw: string): unknown {
+  let s = raw
+    .replace(/^```json\s*/im, "")
+    .replace(/^```\s*/im, "")
+    .replace(/```\s*$/im, "")
+    .trim();
+  if (!s.startsWith("{") && !s.startsWith("[")) {
+    const o = s.indexOf("{");
+    const e = s.lastIndexOf("}");
+    if (o !== -1 && e > o) s = s.slice(o, e + 1);
+    else throw new Error("No JSON object found in model output");
+  }
+  return JSON.parse(s);
+}
 
 export type GeneratedStory = z.infer<typeof StorySchema> & { id: string };
 export type GeneratedBriefing = {
@@ -61,26 +73,25 @@ Each story must include:
 - region & category from the allowed enums.
 - hoursAgo: integer 0-24 indicating recency.
 
-Tone: institutional, sober, precise. Never hype. Avoid speculation framed as fact. Treat the reader as a sophisticated GCC investor or policymaker.`;
+Tone: institutional, sober, precise. Never hype. Avoid speculation framed as fact. Treat the reader as a sophisticated GCC investor or policymaker.
 
-    let object: z.infer<typeof BriefingSchema>;
-    try {
-      const res = await generateObject({
-        model: gateway("google/gemini-3-flash-preview"),
-        schema: BriefingSchema,
+Return ONLY a valid JSON object — no prose, no markdown fences — with this exact shape:
+{"stories":[{"category":string,"region":string,"headline":string,"summary":string,"whyItMatters":string,"hoursAgo":number}]}`;
+
+    const runModel = async (model: string) => {
+      const res = await generateText({
+        model: gateway(model),
         prompt,
         temperature: 0.9,
       });
-      object = res.object;
+      return BriefingSchema.parse(extractJSON(res.text));
+    };
+
+    let object: z.infer<typeof BriefingSchema>;
+    try {
+      object = await runModel("google/gemini-3-flash-preview");
     } catch {
-      // Fallback: looser model call with explicit JSON-mode framing
-      const res = await generateObject({
-        model: gateway("google/gemini-2.5-flash"),
-        schema: BriefingSchema,
-        prompt,
-        temperature: 0.8,
-      });
-      object = res.object;
+      object = await runModel("google/gemini-2.5-flash");
     }
 
     const stories = (object.stories ?? []).slice(0, 8);
