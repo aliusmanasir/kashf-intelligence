@@ -21,6 +21,7 @@ import { Route as AuthenticatedLensRouteImport } from './routes/_authenticated/l
 import { Route as AuthenticatedDailyRouteImport } from './routes/_authenticated/daily'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedPulseIndexRouteImport } from './routes/_authenticated/pulse.index'
+import { Route as AuthenticatedPulseSymbolRouteImport } from './routes/_authenticated/pulse.$symbol'
 
 const WelcomeRoute = WelcomeRouteImport.update({
   id: '/welcome',
@@ -81,6 +82,12 @@ const AuthenticatedPulseIndexRoute = AuthenticatedPulseIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedPulseRoute,
 } as any)
+const AuthenticatedPulseSymbolRoute =
+  AuthenticatedPulseSymbolRouteImport.update({
+    id: '/$symbol',
+    path: '/$symbol',
+    getParentRoute: () => AuthenticatedPulseRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/pulse': typeof AuthenticatedPulseRouteWithChildren
   '/voice': typeof AuthenticatedVoiceRoute
   '/api/chat': typeof ApiChatRoute
+  '/pulse/$symbol': typeof AuthenticatedPulseSymbolRoute
   '/pulse/': typeof AuthenticatedPulseIndexRoute
 }
 export interface FileRoutesByTo {
@@ -105,6 +113,7 @@ export interface FileRoutesByTo {
   '/lens': typeof AuthenticatedLensRoute
   '/voice': typeof AuthenticatedVoiceRoute
   '/api/chat': typeof ApiChatRoute
+  '/pulse/$symbol': typeof AuthenticatedPulseSymbolRoute
   '/pulse': typeof AuthenticatedPulseIndexRoute
 }
 export interface FileRoutesById {
@@ -120,6 +129,7 @@ export interface FileRoutesById {
   '/_authenticated/pulse': typeof AuthenticatedPulseRouteWithChildren
   '/_authenticated/voice': typeof AuthenticatedVoiceRoute
   '/api/chat': typeof ApiChatRoute
+  '/_authenticated/pulse/$symbol': typeof AuthenticatedPulseSymbolRoute
   '/_authenticated/pulse/': typeof AuthenticatedPulseIndexRoute
 }
 export interface FileRouteTypes {
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/pulse'
     | '/voice'
     | '/api/chat'
+    | '/pulse/$symbol'
     | '/pulse/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/lens'
     | '/voice'
     | '/api/chat'
+    | '/pulse/$symbol'
     | '/pulse'
   id:
     | '__root__'
@@ -161,6 +173,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pulse'
     | '/_authenticated/voice'
     | '/api/chat'
+    | '/_authenticated/pulse/$symbol'
     | '/_authenticated/pulse/'
   fileRoutesById: FileRoutesById
 }
@@ -259,14 +272,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPulseIndexRouteImport
       parentRoute: typeof AuthenticatedPulseRoute
     }
+    '/_authenticated/pulse/$symbol': {
+      id: '/_authenticated/pulse/$symbol'
+      path: '/$symbol'
+      fullPath: '/pulse/$symbol'
+      preLoaderRoute: typeof AuthenticatedPulseSymbolRouteImport
+      parentRoute: typeof AuthenticatedPulseRoute
+    }
   }
 }
 
 interface AuthenticatedPulseRouteChildren {
+  AuthenticatedPulseSymbolRoute: typeof AuthenticatedPulseSymbolRoute
   AuthenticatedPulseIndexRoute: typeof AuthenticatedPulseIndexRoute
 }
 
 const AuthenticatedPulseRouteChildren: AuthenticatedPulseRouteChildren = {
+  AuthenticatedPulseSymbolRoute: AuthenticatedPulseSymbolRoute,
   AuthenticatedPulseIndexRoute: AuthenticatedPulseIndexRoute,
 }
 
