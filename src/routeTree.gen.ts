@@ -17,9 +17,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedVoiceRouteImport } from './routes/_authenticated/voice'
 import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedLensRouteImport } from './routes/_authenticated/lens'
 import { Route as AuthenticatedDailyRouteImport } from './routes/_authenticated/daily'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedPulseIndexRouteImport } from './routes/_authenticated/pulse.index'
+import { Route as AuthenticatedPulseSymbolRouteImport } from './routes/_authenticated/pulse.$symbol'
 
 const WelcomeRoute = WelcomeRouteImport.update({
   id: '/welcome',
@@ -60,6 +63,11 @@ const AuthenticatedPulseRoute = AuthenticatedPulseRouteImport.update({
   path: '/pulse',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedLensRoute = AuthenticatedLensRouteImport.update({
   id: '/lens',
   path: '/lens',
@@ -75,6 +83,17 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPulseIndexRoute = AuthenticatedPulseIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedPulseRoute,
+} as any)
+const AuthenticatedPulseSymbolRoute =
+  AuthenticatedPulseSymbolRouteImport.update({
+    id: '/$symbol',
+    path: '/$symbol',
+    getParentRoute: () => AuthenticatedPulseRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -84,9 +103,12 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/daily': typeof AuthenticatedDailyRoute
   '/lens': typeof AuthenticatedLensRoute
-  '/pulse': typeof AuthenticatedPulseRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/pulse': typeof AuthenticatedPulseRouteWithChildren
   '/voice': typeof AuthenticatedVoiceRoute
   '/api/chat': typeof ApiChatRoute
+  '/pulse/$symbol': typeof AuthenticatedPulseSymbolRoute
+  '/pulse/': typeof AuthenticatedPulseIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -96,9 +118,11 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/daily': typeof AuthenticatedDailyRoute
   '/lens': typeof AuthenticatedLensRoute
-  '/pulse': typeof AuthenticatedPulseRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/voice': typeof AuthenticatedVoiceRoute
   '/api/chat': typeof ApiChatRoute
+  '/pulse/$symbol': typeof AuthenticatedPulseSymbolRoute
+  '/pulse': typeof AuthenticatedPulseIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -110,9 +134,12 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/daily': typeof AuthenticatedDailyRoute
   '/_authenticated/lens': typeof AuthenticatedLensRoute
-  '/_authenticated/pulse': typeof AuthenticatedPulseRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/pulse': typeof AuthenticatedPulseRouteWithChildren
   '/_authenticated/voice': typeof AuthenticatedVoiceRoute
   '/api/chat': typeof ApiChatRoute
+  '/_authenticated/pulse/$symbol': typeof AuthenticatedPulseSymbolRoute
+  '/_authenticated/pulse/': typeof AuthenticatedPulseIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -124,9 +151,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/daily'
     | '/lens'
+    | '/profile'
     | '/pulse'
     | '/voice'
     | '/api/chat'
+    | '/pulse/$symbol'
+    | '/pulse/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -136,9 +166,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/daily'
     | '/lens'
-    | '/pulse'
+    | '/profile'
     | '/voice'
     | '/api/chat'
+    | '/pulse/$symbol'
+    | '/pulse'
   id:
     | '__root__'
     | '/'
@@ -149,9 +181,12 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/daily'
     | '/_authenticated/lens'
+    | '/_authenticated/profile'
     | '/_authenticated/pulse'
     | '/_authenticated/voice'
     | '/api/chat'
+    | '/_authenticated/pulse/$symbol'
+    | '/_authenticated/pulse/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -221,6 +256,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPulseRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/lens': {
       id: '/_authenticated/lens'
       path: '/lens'
@@ -242,14 +284,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pulse/': {
+      id: '/_authenticated/pulse/'
+      path: '/'
+      fullPath: '/pulse/'
+      preLoaderRoute: typeof AuthenticatedPulseIndexRouteImport
+      parentRoute: typeof AuthenticatedPulseRoute
+    }
+    '/_authenticated/pulse/$symbol': {
+      id: '/_authenticated/pulse/$symbol'
+      path: '/$symbol'
+      fullPath: '/pulse/$symbol'
+      preLoaderRoute: typeof AuthenticatedPulseSymbolRouteImport
+      parentRoute: typeof AuthenticatedPulseRoute
+    }
   }
 }
+
+interface AuthenticatedPulseRouteChildren {
+  AuthenticatedPulseSymbolRoute: typeof AuthenticatedPulseSymbolRoute
+  AuthenticatedPulseIndexRoute: typeof AuthenticatedPulseIndexRoute
+}
+
+const AuthenticatedPulseRouteChildren: AuthenticatedPulseRouteChildren = {
+  AuthenticatedPulseSymbolRoute: AuthenticatedPulseSymbolRoute,
+  AuthenticatedPulseIndexRoute: AuthenticatedPulseIndexRoute,
+}
+
+const AuthenticatedPulseRouteWithChildren =
+  AuthenticatedPulseRoute._addFileChildren(AuthenticatedPulseRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDailyRoute: typeof AuthenticatedDailyRoute
   AuthenticatedLensRoute: typeof AuthenticatedLensRoute
-  AuthenticatedPulseRoute: typeof AuthenticatedPulseRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedPulseRoute: typeof AuthenticatedPulseRouteWithChildren
   AuthenticatedVoiceRoute: typeof AuthenticatedVoiceRoute
 }
 
@@ -257,7 +327,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDailyRoute: AuthenticatedDailyRoute,
   AuthenticatedLensRoute: AuthenticatedLensRoute,
-  AuthenticatedPulseRoute: AuthenticatedPulseRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedPulseRoute: AuthenticatedPulseRouteWithChildren,
   AuthenticatedVoiceRoute: AuthenticatedVoiceRoute,
 }
 
