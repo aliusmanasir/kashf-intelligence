@@ -1,12 +1,20 @@
 /**
- * Kashf brand mark — "Horizon"
+ * Kashf brand mark — "Aperture K"
  *
- * A medallion: thin institutional ring, a precise horizon line bisecting it,
- * and a half-disc rising from that horizon. The mark reads as dawn — the
- * literal meaning of kashf (كشف): unveiling, revelation, what was hidden
- * becoming seen. Coin-like and quiet enough to age into a logo people trust.
+ * A custom geometric symbol, not a letter. A single vertical column anchors
+ * the left — the column of record, the institution. From its mid-point, a
+ * precise wedge of light opens to the right in two layered planes: the
+ * outer plane wide and faint, the inner plane narrower and solid. The two
+ * planes converge on the column at a single point of contact.
  *
- * Reads cleanly from 16px favicon to 200px+ hero scale.
+ * Read literally, the column + wedge silhouette is a stylised K — but never
+ * obvious. Read symbolically, it is an aperture opening, a signal emerging
+ * from a fixed reference, information becoming clear. The two stacked planes
+ * echo kashf (كشف) — layers being lifted, the hidden becoming seen.
+ *
+ * Built on a 100-unit grid with a 4-unit stroke system. Reads cleanly from
+ * a 16px favicon to a 200px+ hero scale; the wedge collapses gracefully and
+ * the column always remains identifiable.
  */
 export function KashfMarkSvg({
   size = 64,
@@ -27,12 +35,14 @@ export function KashfMarkSvg({
       className={className}
       aria-hidden="true"
     >
-      {/* Outer ring — the institutional medallion */}
-      <circle cx="50" cy="50" r="44" stroke={stroke} strokeWidth="3" />
-      {/* Horizon line — the line of revelation */}
-      <line x1="14" y1="56" x2="86" y2="56" stroke={stroke} strokeWidth="3" strokeLinecap="round" />
-      {/* Rising half-disc — what emerges */}
-      <path d="M28 56 A22 22 0 0 1 72 56 Z" fill={stroke} />
+      {/* Outer wedge — the wide aperture, faint. Converges on the column pivot (32,50). */}
+      <path d="M32 50 L86 16 L86 84 Z" fill={stroke} fillOpacity="0.22" />
+      {/* Inner wedge — the focused beam of insight. Same pivot, narrower angle. */}
+      <path d="M32 50 L78 30 L78 70 Z" fill={stroke} />
+      {/* Column of record — the institutional spine. Subtle round caps. */}
+      <rect x="26" y="14" width="8" height="72" rx="1.5" fill={stroke} />
+      {/* Pivot accent — the single point where signal meets record. */}
+      <circle cx="30" cy="50" r="3" fill="var(--background)" />
     </svg>
   );
 }
@@ -43,9 +53,9 @@ export function KashfLogo({ size = 64 }: { size?: number }) {
       style={{ width: size, height: size }}
       className="relative flex items-center justify-center"
     >
-      <div className="absolute inset-0 rounded-[24%] bg-gradient-to-br from-primary/20 via-transparent to-transparent blur-2xl" />
-      <div className="relative flex h-full w-full items-center justify-center rounded-[22%] border border-white/[0.06] bg-gradient-to-br from-[oklch(0.18_0.01_260)] to-[oklch(0.12_0.008_260)] shadow-[0_8px_30px_-12px_rgba(0,0,0,0.6)]">
-        <KashfMarkSvg size={Math.round(size * 0.58)} stroke="var(--primary)" />
+      <div className="absolute inset-0 rounded-[24%] bg-gradient-to-br from-primary/15 via-transparent to-transparent blur-2xl" />
+      <div className="relative flex h-full w-full items-center justify-center rounded-[22%] border border-white/[0.06] bg-gradient-to-br from-[oklch(0.16_0.008_260)] to-[oklch(0.10_0.006_260)] shadow-[0_8px_30px_-12px_rgba(0,0,0,0.7)]">
+        <KashfMarkSvg size={Math.round(size * 0.6)} stroke="var(--primary)" />
       </div>
     </div>
   );
@@ -55,7 +65,7 @@ export function KashfWordmark({ className }: { className?: string }) {
   return (
     <span
       className={
-        "font-display text-2xl font-semibold tracking-[-0.045em] text-foreground " +
+        "font-display text-2xl font-medium tracking-[-0.05em] text-foreground " +
         (className ?? "")
       }
     >
