@@ -1,17 +1,29 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { AppHeader, KashfMark } from "@/components/BottomTabs";
-import { ArrowUp, Sparkle } from "lucide-react";
+import { ArrowUp, Sparkle, X } from "lucide-react";
+import { z } from "zod";
 
 export const Route = createFileRoute("/_authenticated/lens")({
   head: () => ({
     meta: [{ title: "Kashf Lens — AI Financial Intelligence" }],
   }),
+  validateSearch: (s: Record<string, unknown>) =>
+    z.object({ ctx: z.string().optional() }).parse(s),
   component: KashfLens,
 });
+
+type LensContext = {
+  headline: string;
+  category: string;
+  region: string;
+  summary: string;
+  whyItMatters: string;
+  initialPrompt: string;
+};
 
 const suggestions = [
   "What happened in Saudi markets today?",
@@ -21,13 +33,33 @@ const suggestions = [
 ];
 
 function KashfLens() {
+  const { ctx } = Route.useSearch();
+  const navigate = useNavigate();
   const transport = useRef(new DefaultChatTransport({ api: "/api/chat" })).current;
   const { messages, sendMessage, status, error } = useChat({ transport });
   const [input, setInput] = useState("");
+  const [article, setArticle] = useState<LensContext | null>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const isLoading = status === "submitted" || status === "streaming";
+
+  // Pull article context handed off from Kashf Daily
+  useEffect(() => {
+    if (ctx !== "1" || typeof window === "undefined") return;
+    const raw = window.sessionStorage.getItem("kashf_lens_context");
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as LensContext;
+      setArticle(parsed);
+      setInput(parsed.initialPrompt);
+      // Keep until user clears, but strip ctx from URL
+      navigate({ to: "/lens", search: {} as never, replace: true });
+      setTimeout(() => inputRef.current?.focus(), 50);
+    } catch {
+      // ignore
+    }
+  }, [ctx, navigate]);
 
   useEffect(() => {
     scrollerRef.current?.scrollTo({
@@ -40,11 +72,23 @@ function KashfLens() {
     inputRef.current?.focus();
   }, [status]);
 
+  const clearArticle = () => {
+    setArticle(null);
+    if (typeof window !== "undefined") {
+      window.sessionStorage.removeItem("kashf_lens_context");
+    }
+  };
+
   const submit = async (text: string) => {
     const t = text.trim();
     if (!t || isLoading) return;
+    let payload = t;
+    // Inject article context once on the first send
+    if (article && messages.length === 0) {
+      payload = `Article context — ${article.region} · ${article.category}\nHeadline: ${article.headline}\nSummary: ${article.summary}\nWhy it matters: ${article.whyItMatters}\n\nMy question: ${t}`;
+    }
     setInput("");
-    await sendMessage({ text: t });
+    await sendMessage({ text: payload });
   };
 
   return (
@@ -52,8 +96,11 @@ function KashfLens() {
       <AppHeader eyebrow="AI analyst" title="Kashf Lens" right={<KashfMark />} />
 
       <div ref={scrollerRef} className="flex-1 overflow-y-auto px-5 pb-40 pt-4">
+        {article && (
+          <ContextCard article={article} onClear={clearArticle} />
+        )}
         {messages.length === 0 ? (
-          <EmptyState onPick={submit} />
+          <EmptyState onPick={submit} hasArticle={!!article} />
         ) : (
           <div className="space-y-5">
             {messages.map((m) => (
@@ -106,7 +153,43 @@ function KashfLens() {
   );
 }
 
-function EmptyState({ onPick }: { onPick: (s: string) => void }) {
+function ContextCard({ article, onClear }: { article: LensContext; onClear: () => void }) {
+  return (
+    <div className="mb-5 rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/8 to-transparent p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">
+            Currently discussing
+          </p>
+          <p className="mt-1.5 font-display text-[15px] font-semibold leading-snug tracking-tight text-foreground">
+            {article.headline}
+          </p>
+          <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            {article.region} · {article.category}
+          </p>
+        </div>
+        <button
+          onClick={onClear}
+          aria-label="Clear article context"
+          className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ onPick, hasArticle }: { onPick: (s: string) => void; hasArticle: boolean }) {
+  if (hasArticle) {
+    return (
+      <div className="pt-2 text-center">
+        <p className="text-sm text-muted-foreground">
+          Ask anything about this story — context, risks, opportunities, or implications.
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col items-center pt-6 text-center">
       <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/20 to-transparent">

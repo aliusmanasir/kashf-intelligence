@@ -68,8 +68,8 @@ Produce 6-8 stories spanning a mix of:
 
 Each story must include:
 - headline: tight, Bloomberg/FT style, max ~110 chars, no clickbait.
-- summary: 2-3 sentences of factual reporting tone. Use plausible figures but mark them as indicative; do not fabricate quotes from named individuals.
-- whyItMatters: 1-2 sentences of analyst insight — the structural implication for Gulf markets/power/economy.
+- summary: EXACTLY 3 to 5 concise sentences of factual reporting. State what happened, who is involved, the key numbers, and the immediate context. Use plausible figures but mark them as indicative; do not fabricate quotes from named individuals.
+- whyItMatters: EXACTLY 2 to 3 concise sentences of analyst insight — the structural implication for Gulf markets, business, or policy, and what sophisticated investors should now watch.
 - region & category from the allowed enums.
 - hoursAgo: integer 0-24 indicating recency.
 
