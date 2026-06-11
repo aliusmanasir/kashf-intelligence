@@ -1,20 +1,16 @@
 /**
- * Kashf brand mark — "Aperture K"
+ * Kashf brand mark — "Revelation"
  *
- * A custom geometric symbol, not a letter. A single vertical column anchors
- * the left — the column of record, the institution. From its mid-point, a
- * precise wedge of light opens to the right in two layered planes: the
- * outer plane wide and faint, the inner plane narrower and solid. The two
- * planes converge on the column at a single point of contact.
+ * A timeless geometric symbol of the hidden becoming visible. A precise
+ * crescent of light — the eclipse moment, the lens, the iris of an eye —
+ * sits beside a single vertical line of record. The crescent's curve and
+ * the pillar together hint at a stylised K, but never insist on it; read
+ * first as a mark of insight, second as a letter.
  *
- * Read literally, the column + wedge silhouette is a stylised K — but never
- * obvious. Read symbolically, it is an aperture opening, a signal emerging
- * from a fixed reference, information becoming clear. The two stacked planes
- * echo kashf (كشف) — layers being lifted, the hidden becoming seen.
- *
- * Built on a 100-unit grid with a 4-unit stroke system. Reads cleanly from
- * a 16px favicon to a 200px+ hero scale; the wedge collapses gracefully and
- * the column always remains identifiable.
+ * Built on a 100-unit grid. Crescent rendered as a true geometric
+ * subtraction (two arcs, even-odd fill) so the silhouette is mathematically
+ * exact at every scale. Reads cleanly from 16px favicon to 200px+ hero;
+ * the pillar always anchors the composition.
  */
 export function KashfMarkSvg({
   size = 64,
@@ -35,14 +31,17 @@ export function KashfMarkSvg({
       className={className}
       aria-hidden="true"
     >
-      {/* Outer wedge — the wide aperture, faint. Converges on the column pivot (32,50). */}
-      <path d="M32 50 L86 16 L86 84 Z" fill={stroke} fillOpacity="0.22" />
-      {/* Inner wedge — the focused beam of insight. Same pivot, narrower angle. */}
-      <path d="M32 50 L78 30 L78 70 Z" fill={stroke} />
-      {/* Column of record — the institutional spine. Subtle round caps. */}
-      <rect x="26" y="14" width="8" height="72" rx="1.5" fill={stroke} />
-      {/* Pivot accent — the single point where signal meets record. */}
-      <circle cx="30" cy="50" r="3" fill="var(--background)" />
+      {/* Pillar of record — the institutional spine. */}
+      <rect x="18" y="14" width="6" height="72" rx="1.5" fill={stroke} />
+      {/* Crescent of revelation — outer disc minus inner disc, even-odd. */}
+      <path
+        d="M62 18 a32 32 0 1 1 0 64 a32 32 0 1 1 0 -64 Z
+           M68 24 a26 26 0 1 0 0 52 a26 26 0 1 0 0 -52 Z"
+        fill={stroke}
+        fillRule="evenodd"
+      />
+      {/* Point of focus — the moment of clarity. */}
+      <circle cx="86" cy="50" r="2.5" fill={stroke} />
     </svg>
   );
 }
