@@ -22,7 +22,7 @@ type LensContext = {
   region: string;
   summary: string;
   whyItMatters: string;
-  initialPrompt: string;
+  initialPrompt?: string;
 };
 
 const suggestions = [
@@ -52,7 +52,6 @@ function KashfLens() {
     try {
       const parsed = JSON.parse(raw) as LensContext;
       setArticle(parsed);
-      setInput(parsed.initialPrompt);
       // Keep until user clears, but strip ctx from URL
       navigate({ to: "/lens", search: {} as never, replace: true });
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -100,7 +99,7 @@ function KashfLens() {
           <ContextCard article={article} onClear={clearArticle} />
         )}
         {messages.length === 0 ? (
-          <EmptyState onPick={submit} hasArticle={!!article} />
+          <EmptyState onPick={submit} article={article} />
         ) : (
           <div className="space-y-5">
             {messages.map((m) => (
@@ -180,13 +179,36 @@ function ContextCard({ article, onClear }: { article: LensContext; onClear: () =
   );
 }
 
-function EmptyState({ onPick, hasArticle }: { onPick: (s: string) => void; hasArticle: boolean }) {
-  if (hasArticle) {
+function EmptyState({
+  onPick,
+  article,
+}: {
+  onPick: (s: string) => void;
+  article: LensContext | null;
+}) {
+  if (article) {
+    const starters = [
+      `Why does "${truncate(article.headline, 60)}" matter?`,
+      "What happens next?",
+      `How does this affect ${article.region} markets?`,
+      "Explain this simply",
+    ];
     return (
-      <div className="pt-2 text-center">
-        <p className="text-sm text-muted-foreground">
-          Ask anything about this story — context, risks, opportunities, or implications.
+      <div className="pt-2">
+        <p className="px-1 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+          Starter questions
         </p>
+        <div className="mt-3 grid gap-2">
+          {starters.map((s) => (
+            <button
+              key={s}
+              onClick={() => onPick(s)}
+              className="rounded-xl border border-border bg-card px-4 py-3 text-left text-sm text-foreground transition-colors hover:border-primary/40"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
       </div>
     );
   }
@@ -214,6 +236,10 @@ function EmptyState({ onPick, hasArticle }: { onPick: (s: string) => void; hasAr
       </div>
     </div>
   );
+}
+
+function truncate(s: string, n: number) {
+  return s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s;
 }
 
 function MessageBubble({ message }: { message: UIMessage }) {
