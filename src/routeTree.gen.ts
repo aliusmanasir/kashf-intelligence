@@ -19,6 +19,7 @@ import { Route as AuthenticatedVoiceRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedLensRouteImport } from './routes/_authenticated/lens'
+import { Route as AuthenticatedDailyRouteImport } from './routes/_authenticated/daily'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedPulseIndexRouteImport } from './routes/_authenticated/pulse.index'
 import { Route as AuthenticatedPulseSymbolRouteImport } from './routes/_authenticated/pulse.$symbol'
@@ -72,6 +73,11 @@ const AuthenticatedLensRoute = AuthenticatedLensRouteImport.update({
   path: '/lens',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDailyRoute = AuthenticatedDailyRouteImport.update({
+  id: '/daily',
+  path: '/daily',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/welcome': typeof WelcomeRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/daily': typeof AuthenticatedDailyRoute
   '/lens': typeof AuthenticatedLensRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/pulse': typeof AuthenticatedPulseRouteWithChildren
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/welcome': typeof WelcomeRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/daily': typeof AuthenticatedDailyRoute
   '/lens': typeof AuthenticatedLensRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/voice': typeof AuthenticatedVoiceRoute
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/welcome': typeof WelcomeRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/daily': typeof AuthenticatedDailyRoute
   '/_authenticated/lens': typeof AuthenticatedLensRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/pulse': typeof AuthenticatedPulseRouteWithChildren
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/welcome'
     | '/admin'
+    | '/daily'
     | '/lens'
     | '/profile'
     | '/pulse'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/welcome'
     | '/admin'
+    | '/daily'
     | '/lens'
     | '/profile'
     | '/voice'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/welcome'
     | '/_authenticated/admin'
+    | '/_authenticated/daily'
     | '/_authenticated/lens'
     | '/_authenticated/profile'
     | '/_authenticated/pulse'
@@ -258,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLensRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/daily': {
+      id: '/_authenticated/daily'
+      path: '/daily'
+      fullPath: '/daily'
+      preLoaderRoute: typeof AuthenticatedDailyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -297,6 +316,7 @@ const AuthenticatedPulseRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedDailyRoute: typeof AuthenticatedDailyRoute
   AuthenticatedLensRoute: typeof AuthenticatedLensRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedPulseRoute: typeof AuthenticatedPulseRouteWithChildren
@@ -305,6 +325,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedDailyRoute: AuthenticatedDailyRoute,
   AuthenticatedLensRoute: AuthenticatedLensRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedPulseRoute: AuthenticatedPulseRouteWithChildren,
