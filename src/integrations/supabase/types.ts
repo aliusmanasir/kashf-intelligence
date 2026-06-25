@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      reading_activity: {
+        Row: {
+          action: string
+          category: string | null
+          created_at: string
+          headline: string | null
+          id: string
+          region: string | null
+          story_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          category?: string | null
+          created_at?: string
+          headline?: string | null
+          id?: string
+          region?: string | null
+          story_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          category?: string | null
+          created_at?: string
+          headline?: string | null
+          id?: string
+          region?: string | null
+          story_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          countries: string[]
+          created_at: string
+          education: string | null
+          goals: string[]
+          interests: string[]
+          onboarded: boolean
+          region_preset: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          countries?: string[]
+          created_at?: string
+          education?: string | null
+          goals?: string[]
+          interests?: string[]
+          onboarded?: boolean
+          region_preset?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          countries?: string[]
+          created_at?: string
+          education?: string | null
+          goals?: string[]
+          interests?: string[]
+          onboarded?: boolean
+          region_preset?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

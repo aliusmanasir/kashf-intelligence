@@ -1,15 +1,30 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RefreshCw, Loader2, Sparkle, ArrowUpRight, ChevronDown } from "lucide-react";
+import {
+  RefreshCw,
+  Loader2,
+  Sparkle,
+  ArrowUpRight,
+  ChevronDown,
+  UserCircle2,
+} from "lucide-react";
 import { AppHeader, KashfMark } from "@/components/BottomTabs";
 import {
   generateDailyBriefing,
   type GeneratedBriefing,
   type GeneratedStory,
 } from "@/lib/daily-briefing.functions";
+import { logActivity } from "@/lib/preferences.functions";
+import {
+  EDITION_SLOTS,
+  FEED_CATEGORIES,
+  currentEditionSlot,
+  type EditionSlot,
+  type FeedCategory,
+} from "@/lib/personalization";
 
 export const Route = createFileRoute("/_authenticated/daily")({
   head: () => ({
@@ -26,23 +41,27 @@ export const Route = createFileRoute("/_authenticated/daily")({
 
 function KashfDaily() {
   const fetchBriefing = useServerFn(generateDailyBriefing);
+  const trackActivity = useServerFn(logActivity);
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const [slot, setSlot] = useState<EditionSlot>("morning");
+  useEffect(() => {
+    setSlot(currentEditionSlot());
+  }, []);
 
   const query = useQuery<GeneratedBriefing>({
-    queryKey: ["kashf-daily"],
-    queryFn: () => fetchBriefing({ data: { seed: Date.now() } }),
+    queryKey: ["kashf-daily", slot],
+    queryFn: () => fetchBriefing({ data: { seed: Date.now(), slot } }),
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   });
 
   const refresh = () =>
     qc.fetchQuery({
-      queryKey: ["kashf-daily"],
-      queryFn: () => fetchBriefing({ data: { seed: Date.now() } }),
+      queryKey: ["kashf-daily", slot],
+      queryFn: () => fetchBriefing({ data: { seed: Date.now(), slot } }),
     });
 
-  // Pull-to-refresh
   const scrollerRef = useRef<HTMLDivElement>(null);
   const startY = useRef<number | null>(null);
   const [pullY, setPullY] = useState(0);
@@ -72,7 +91,28 @@ function KashfDaily() {
 
   const isFetching = query.isFetching || refreshing;
 
+  const trackExpand = (story: GeneratedStory) => {
+    void trackActivity({
+      data: {
+        story_id: story.id,
+        headline: story.headline,
+        category: story.category,
+        region: story.region,
+        action: "expand",
+      },
+    }).catch(() => {});
+  };
+
   const askLensAbout = (story: GeneratedStory) => {
+    void trackActivity({
+      data: {
+        story_id: story.id,
+        headline: story.headline,
+        category: story.category,
+        region: story.region,
+        action: "ask_lens",
+      },
+    }).catch(() => {});
     if (typeof window !== "undefined") {
       window.sessionStorage.setItem(
         "kashf_lens_context",
@@ -88,6 +128,17 @@ function KashfDaily() {
     navigate({ to: "/lens", search: { ctx: "1" } as never });
   };
 
+  const grouped = useMemo(() => {
+    const map = new Map<FeedCategory, GeneratedStory[]>();
+    for (const s of query.data?.stories ?? []) {
+      const sec = ((s.section as FeedCategory) ?? "top") as FeedCategory;
+      const arr = map.get(sec) ?? [];
+      arr.push(s);
+      map.set(sec, arr);
+    }
+    return map;
+  }, [query.data]);
+
   return (
     <div
       ref={scrollerRef}
@@ -97,10 +148,17 @@ function KashfDaily() {
       className="touch-pan-y"
     >
       <AppHeader
-        eyebrow={query.data?.edition ?? "Morning Edition"}
+        eyebrow={query.data?.edition ?? "Daily Briefing"}
         title="Kashf Daily"
         right={
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate({ to: "/profile" })}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+              aria-label="Profile and interests"
+            >
+              <UserCircle2 className="h-4 w-4" />
+            </button>
             <button
               onClick={refresh}
               disabled={isFetching}
@@ -114,7 +172,6 @@ function KashfDaily() {
         }
       />
 
-      {/* Pull indicator */}
       <div
         style={{ height: pullY }}
         className="flex items-end justify-center overflow-hidden text-xs text-muted-foreground"
@@ -126,11 +183,26 @@ function KashfDaily() {
         <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
           {query.data?.date ?? "Generating today's briefing…"}
         </p>
-        <p className="mt-2 max-w-[28ch] font-display text-[15px] leading-snug text-foreground/85">
-          {query.data
-            ? `${query.data.stories.length} stories shaping business, markets, and policy across the Gulf today.`
-            : "Kashf is curating the Gulf's most important stories."}
+        <p className="mt-2 max-w-[32ch] font-display text-[15px] leading-snug text-foreground/85">
+          {query.data?.tagline ?? "Kashf is curating today's most important stories for you."}
         </p>
+
+        <div className="mt-4 grid grid-cols-3 gap-1 rounded-xl border border-border bg-card p-1">
+          {EDITION_SLOTS.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setSlot(s.id)}
+              className={
+                "rounded-lg py-2 text-[11px] font-medium uppercase tracking-[0.16em] transition-colors " +
+                (slot === s.id
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground")
+              }
+            >
+              {s.id === "morning" ? "Morning" : s.id === "afternoon" ? "Afternoon" : "Evening"}
+            </button>
+          ))}
+        </div>
         <div className="mt-5 h-px w-full bg-border" />
       </div>
 
@@ -145,29 +217,37 @@ function KashfDaily() {
         </div>
       )}
 
-      <AnimatePresence mode="popLayout">
-        {query.data && (
-          <motion.ol
-            key={query.data.generatedAt}
-            initial="hidden"
-            animate="show"
-            variants={{
-              show: { transition: { staggerChildren: 0.04 } },
-              hidden: {},
-            }}
-            className="mt-6 space-y-3 px-5"
-          >
-            {query.data.stories.map((s, i) => (
-              <StoryCard
-                key={s.id}
-                index={i}
-                story={s}
-                onAskLens={() => askLensAbout(s)}
-              />
-            ))}
-          </motion.ol>
-        )}
-      </AnimatePresence>
+      {query.data && (
+        <div className="mt-6 space-y-8 px-5">
+          {FEED_CATEGORIES.map((cat) => {
+            const items = grouped.get(cat.id) ?? [];
+            if (items.length === 0) return null;
+            return (
+              <section key={cat.id}>
+                <div className="mb-3 flex items-baseline justify-between">
+                  <h3 className="font-display text-[13px] font-semibold uppercase tracking-[0.22em] text-foreground">
+                    {cat.label}
+                  </h3>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                    {items.length} {items.length === 1 ? "story" : "stories"}
+                  </span>
+                </div>
+                <ol className="space-y-3">
+                  {items.map((s, i) => (
+                    <StoryCard
+                      key={s.id}
+                      index={i}
+                      story={s}
+                      onAskLens={() => askLensAbout(s)}
+                      onExpand={() => trackExpand(s)}
+                    />
+                  ))}
+                </ol>
+              </section>
+            );
+          })}
+        </div>
+      )}
 
       {query.data && (
         <p className="px-5 py-10 text-center text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
@@ -193,22 +273,28 @@ function StoryCard({
   story,
   index,
   onAskLens,
+  onExpand,
 }: {
   story: GeneratedStory;
   index: number;
   onAskLens: () => void;
+  onExpand: () => void;
 }) {
   const [open, setOpen] = useState(false);
   return (
     <motion.li
-      variants={{
-        hidden: { opacity: 0, y: 10 },
-        show: { opacity: 1, y: 0 },
-      }}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, delay: Math.min(index, 4) * 0.03 }}
       className="overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-primary/30"
     >
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          setOpen((v) => {
+            if (!v) onExpand();
+            return !v;
+          });
+        }}
         className="block w-full text-left"
         aria-expanded={open}
       >
@@ -260,6 +346,16 @@ function StoryCard({
                   {story.whyItMatters}
                 </p>
               </div>
+              {story.whyMattersToYou && (
+                <div className="mt-3 rounded-xl border border-primary/30 bg-primary/[0.06] p-4">
+                  <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">
+                    Why this matters to you
+                  </p>
+                  <p className="mt-1.5 text-[14px] leading-[1.6] text-foreground/90">
+                    {story.whyMattersToYou}
+                  </p>
+                </div>
+              )}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -293,7 +389,7 @@ function BriefingSkeleton() {
         </div>
       ))}
       <p className="flex items-center justify-center gap-2 pt-4 text-xs text-muted-foreground">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating today's briefing
+        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Curating your briefing
       </p>
     </div>
   );
