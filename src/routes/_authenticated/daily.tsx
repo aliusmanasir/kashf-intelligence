@@ -153,13 +153,6 @@ function KashfDaily() {
         right={
           <div className="flex items-center gap-2">
             <button
-              onClick={() => navigate({ to: "/profile" })}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
-              aria-label="Profile and interests"
-            >
-              <UserCircle2 className="h-4 w-4" />
-            </button>
-            <button
               onClick={refresh}
               disabled={isFetching}
               className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-60"
