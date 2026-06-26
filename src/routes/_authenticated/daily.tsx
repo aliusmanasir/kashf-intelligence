@@ -9,7 +9,6 @@ import {
   Sparkle,
   ArrowUpRight,
   ChevronDown,
-  UserCircle2,
 } from "lucide-react";
 import { AppHeader, KashfMark } from "@/components/BottomTabs";
 import {
