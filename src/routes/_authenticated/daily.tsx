@@ -294,7 +294,7 @@ function StoryCard({
         <div className="px-5 pt-4">
           <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em]">
             <span className="text-primary">
-              №{String(index + 1).padStart(2, "0")} · {story.category}
+              №{String(index + 1).padStart(2, "0")} · {story.publisher || story.category}
             </span>
             <span className="text-muted-foreground">
               {story.region} · {timeAgo(story.hoursAgo)}
