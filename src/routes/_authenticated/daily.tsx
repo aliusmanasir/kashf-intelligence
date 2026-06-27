@@ -9,6 +9,7 @@ import {
   Sparkle,
   ArrowUpRight,
   ChevronDown,
+  ExternalLink,
 } from "lucide-react";
 import { AppHeader, KashfMark } from "@/components/BottomTabs";
 import {
@@ -293,7 +294,7 @@ function StoryCard({
         <div className="px-5 pt-4">
           <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em]">
             <span className="text-primary">
-              №{String(index + 1).padStart(2, "0")} · {story.category}
+              №{String(index + 1).padStart(2, "0")} · {story.publisher || story.category}
             </span>
             <span className="text-muted-foreground">
               {story.region} · {timeAgo(story.hoursAgo)}
@@ -347,6 +348,21 @@ function StoryCard({
                     {story.whyMattersToYou}
                   </p>
                 </div>
+              )}
+              {story.sourceUrl && (
+                <a
+                  href={story.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="mt-4 inline-flex w-full items-center justify-between rounded-xl border border-border bg-background/40 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-primary/5"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <ExternalLink className="h-3.5 w-3.5 text-primary" />
+                    Read on {story.publisher}
+                  </span>
+                  <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                </a>
               )}
               <button
                 onClick={(e) => {
