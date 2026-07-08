@@ -10,14 +10,23 @@ import {
   ArrowUpRight,
   ChevronDown,
   ExternalLink,
+  Bookmark,
+  BookmarkCheck,
+  Search,
+  X,
 } from "lucide-react";
-import { AppHeader, KashfMark } from "@/components/BottomTabs";
+import { AppHeader } from "@/components/BottomTabs";
 import {
   generateDailyBriefing,
   type GeneratedBriefing,
   type GeneratedStory,
 } from "@/lib/daily-briefing.functions";
 import { logActivity } from "@/lib/preferences.functions";
+import {
+  saveStory,
+  unsaveStory,
+  listSavedStoryIds,
+} from "@/lib/saved-stories.functions";
 import {
   EDITION_SLOTS,
   FEED_CATEGORIES,
@@ -42,12 +51,60 @@ export const Route = createFileRoute("/_authenticated/daily")({
 function KashfDaily() {
   const fetchBriefing = useServerFn(generateDailyBriefing);
   const trackActivity = useServerFn(logActivity);
+  const doSave = useServerFn(saveStory);
+  const doUnsave = useServerFn(unsaveStory);
+  const fetchSavedIds = useServerFn(listSavedStoryIds);
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [slot, setSlot] = useState<EditionSlot>("morning");
+  const [search, setSearch] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
   useEffect(() => {
     setSlot(currentEditionSlot());
   }, []);
+
+  const savedIdsQuery = useQuery<string[]>({
+    queryKey: ["saved-story-ids"],
+    queryFn: () => fetchSavedIds(),
+    staleTime: 60_000,
+  });
+  const savedSet = useMemo(
+    () => new Set(savedIdsQuery.data ?? []),
+    [savedIdsQuery.data],
+  );
+
+  const toggleSave = async (story: GeneratedStory) => {
+    const wasSaved = savedSet.has(story.id);
+    if (wasSaved) {
+      await doUnsave({ data: { story_id: story.id } });
+    } else {
+      await doSave({
+        data: {
+          story_id: story.id,
+          headline: story.headline,
+          summary: story.summary,
+          why_it_matters: story.whyItMatters,
+          why_matters_to_you: story.whyMattersToYou,
+          category: story.category,
+          region: story.region,
+          publisher: story.publisher,
+          source_url: story.sourceUrl,
+          section: story.section,
+        },
+      });
+      void trackActivity({
+        data: {
+          story_id: story.id,
+          headline: story.headline,
+          category: story.category,
+          region: story.region,
+          action: "save",
+        },
+      }).catch(() => {});
+    }
+    await qc.invalidateQueries({ queryKey: ["saved-story-ids"] });
+    await qc.invalidateQueries({ queryKey: ["saved-stories"] });
+  };
 
   const query = useQuery<GeneratedBriefing>({
     queryKey: ["kashf-daily", slot],
@@ -130,14 +187,25 @@ function KashfDaily() {
 
   const grouped = useMemo(() => {
     const map = new Map<FeedCategory, GeneratedStory[]>();
-    for (const s of query.data?.stories ?? []) {
+    const q = search.trim().toLowerCase();
+    const filtered = (query.data?.stories ?? []).filter((s) => {
+      if (!q) return true;
+      return (
+        s.headline.toLowerCase().includes(q) ||
+        s.summary.toLowerCase().includes(q) ||
+        s.category.toLowerCase().includes(q) ||
+        s.region.toLowerCase().includes(q) ||
+        (s.publisher ?? "").toLowerCase().includes(q)
+      );
+    });
+    for (const s of filtered) {
       const sec = ((s.section as FeedCategory) ?? "top") as FeedCategory;
       const arr = map.get(sec) ?? [];
       arr.push(s);
       map.set(sec, arr);
     }
     return map;
-  }, [query.data]);
+  }, [query.data, search]);
 
   return (
     <div
@@ -153,6 +221,13 @@ function KashfDaily() {
         right={
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setShowSearch((v) => !v)}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+              aria-label="Search"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+            <button
               onClick={refresh}
               disabled={isFetching}
               className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-60"
@@ -160,10 +235,33 @@ function KashfDaily() {
             >
               <RefreshCw className={"h-4 w-4 " + (isFetching ? "animate-spin" : "")} />
             </button>
-            <KashfMark />
           </div>
         }
       />
+
+      {showSearch && (
+        <div className="mx-auto max-w-md px-5 pt-3">
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <input
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search today's briefing…"
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <div
         style={{ height: pullY }}
@@ -231,6 +329,8 @@ function KashfDaily() {
                       key={s.id}
                       index={i}
                       story={s}
+                      saved={savedSet.has(s.id)}
+                      onToggleSave={() => toggleSave(s)}
                       onAskLens={() => askLensAbout(s)}
                       onExpand={() => trackExpand(s)}
                     />
@@ -265,11 +365,15 @@ function firstSentence(text: string): string {
 function StoryCard({
   story,
   index,
+  saved,
+  onToggleSave,
   onAskLens,
   onExpand,
 }: {
   story: GeneratedStory;
   index: number;
+  saved: boolean;
+  onToggleSave: () => void;
   onAskLens: () => void;
   onExpand: () => void;
 }) {
@@ -281,43 +385,64 @@ function StoryCard({
       transition={{ duration: 0.25, delay: Math.min(index, 4) * 0.03 }}
       className="overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-primary/30"
     >
-      <button
-        onClick={() => {
-          setOpen((v) => {
-            if (!v) onExpand();
-            return !v;
-          });
-        }}
-        className="block w-full text-left"
-        aria-expanded={open}
-      >
-        <div className="px-5 pt-4">
-          <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em]">
-            <span className="text-primary">
-              №{String(index + 1).padStart(2, "0")} · {story.publisher || story.category}
-            </span>
-            <span className="text-muted-foreground">
-              {story.region} · {timeAgo(story.hoursAgo)}
-            </span>
+      <div className="relative">
+        <button
+          onClick={() => {
+            setOpen((v) => {
+              if (!v) onExpand();
+              return !v;
+            });
+          }}
+          className="block w-full text-left"
+          aria-expanded={open}
+        >
+          <div className="px-5 pt-4 pr-14">
+            <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em]">
+              <span className="text-primary">
+                №{String(index + 1).padStart(2, "0")} · {story.publisher || story.category}
+              </span>
+              <span className="text-muted-foreground">
+                {story.region} · {timeAgo(story.hoursAgo)}
+              </span>
+            </div>
+            <h2 className="mt-2.5 font-display text-[18px] font-semibold leading-[1.25] tracking-[-0.01em] text-foreground">
+              {story.headline}
+            </h2>
+            {!open && (
+              <p className="mt-2 text-[14px] leading-[1.55] text-muted-foreground">
+                {firstSentence(story.summary)}
+              </p>
+            )}
           </div>
-          <h2 className="mt-2.5 font-display text-[18px] font-semibold leading-[1.25] tracking-[-0.01em] text-foreground">
-            {story.headline}
-          </h2>
-          {!open && (
-            <p className="mt-2 text-[14px] leading-[1.55] text-muted-foreground">
-              {firstSentence(story.summary)}
-            </p>
+          <div className="mt-3 flex items-center justify-between px-5 pb-3 text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">
+            <span>{open ? "Collapse" : "Read more"}</span>
+            <ChevronDown
+              className={
+                "h-3.5 w-3.5 transition-transform " + (open ? "rotate-180" : "")
+              }
+            />
+          </div>
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSave();
+          }}
+          aria-label={saved ? "Remove from saved" : "Save story"}
+          className={
+            "absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border transition-colors " +
+            (saved
+              ? "border-primary/60 bg-primary/10 text-primary"
+              : "border-border bg-background/40 text-muted-foreground hover:border-primary/40 hover:text-primary")
+          }
+        >
+          {saved ? (
+            <BookmarkCheck className="h-4 w-4" />
+          ) : (
+            <Bookmark className="h-4 w-4" />
           )}
-        </div>
-        <div className="mt-3 flex items-center justify-between px-5 pb-3 text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">
-          <span>{open ? "Collapse" : "Read more"}</span>
-          <ChevronDown
-            className={
-              "h-3.5 w-3.5 transition-transform " + (open ? "rotate-180" : "")
-            }
-          />
-        </div>
-      </button>
+        </button>
+      </div>
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
