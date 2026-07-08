@@ -47,6 +47,54 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_stories: {
+        Row: {
+          category: string | null
+          created_at: string
+          headline: string
+          id: string
+          publisher: string | null
+          region: string | null
+          section: string | null
+          source_url: string | null
+          story_id: string
+          summary: string | null
+          user_id: string
+          why_it_matters: string | null
+          why_matters_to_you: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          headline: string
+          id?: string
+          publisher?: string | null
+          region?: string | null
+          section?: string | null
+          source_url?: string | null
+          story_id: string
+          summary?: string | null
+          user_id: string
+          why_it_matters?: string | null
+          why_matters_to_you?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          headline?: string
+          id?: string
+          publisher?: string | null
+          region?: string | null
+          section?: string | null
+          source_url?: string | null
+          story_id?: string
+          summary?: string | null
+          user_id?: string
+          why_it_matters?: string | null
+          why_matters_to_you?: string | null
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           countries: string[]

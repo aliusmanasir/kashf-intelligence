@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Bell, BookmarkCheck, CreditCard, LogOut, Star, ShieldCheck, Activity } from "lucide-react";
+import { ArrowLeft, BookmarkCheck, LogOut, Activity, ChevronRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -206,13 +206,25 @@ function ProfilePage() {
         </form>
       </Section>
 
-      <Section title="Coming soon">
+      <Section title="Library">
         <ul className="divide-y divide-border">
-          <Row icon={Bell} label="Notification settings" hint="Daily briefing alerts, market triggers" />
-          <Row icon={CreditCard} label="Subscription" hint="Manage your Kashf plan" />
-          <Row icon={BookmarkCheck} label="Saved articles" hint="Briefings you bookmarked" />
-          <Row icon={Star} label="Saved assets" hint="Custom watchlists" />
-          <Row icon={ShieldCheck} label="Security & sessions" hint="Devices, 2FA" />
+          <li>
+            <Link
+              to="/saved"
+              className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-background/40"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background text-primary">
+                <BookmarkCheck className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm text-foreground">Saved stories</p>
+                <p className="truncate text-[11px] text-muted-foreground">
+                  Bookmarks from your briefings
+                </p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </Link>
+          </li>
         </ul>
       </Section>
 
@@ -244,21 +256,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="mb-1 block text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
       {children}
     </label>
-  );
-}
-
-function Row({ icon: Icon, label, hint }: { icon: React.ComponentType<{ className?: string }>; label: string; hint: string }) {
-  return (
-    <li className="flex items-center gap-3 px-5 py-3">
-      <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background text-muted-foreground">
-        <Icon className="h-4 w-4" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm text-foreground">{label}</p>
-        <p className="truncate text-[11px] text-muted-foreground">{hint}</p>
-      </div>
-      <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Soon</span>
-    </li>
   );
 }
 

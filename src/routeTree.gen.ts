@@ -16,6 +16,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedVoiceRouteImport } from './routes/_authenticated/voice'
+import { Route as AuthenticatedSavedRouteImport } from './routes/_authenticated/saved'
 import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedLensRouteImport } from './routes/_authenticated/lens'
@@ -56,6 +57,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
 const AuthenticatedVoiceRoute = AuthenticatedVoiceRouteImport.update({
   id: '/voice',
   path: '/voice',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSavedRoute = AuthenticatedSavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPulseRoute = AuthenticatedPulseRouteImport.update({
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/lens': typeof AuthenticatedLensRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/pulse': typeof AuthenticatedPulseRouteWithChildren
+  '/saved': typeof AuthenticatedSavedRoute
   '/voice': typeof AuthenticatedVoiceRoute
   '/api/chat': typeof ApiChatRoute
   '/pulse/$symbol': typeof AuthenticatedPulseSymbolRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/daily': typeof AuthenticatedDailyRoute
   '/lens': typeof AuthenticatedLensRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/saved': typeof AuthenticatedSavedRoute
   '/voice': typeof AuthenticatedVoiceRoute
   '/api/chat': typeof ApiChatRoute
   '/pulse/$symbol': typeof AuthenticatedPulseSymbolRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/_authenticated/lens': typeof AuthenticatedLensRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/pulse': typeof AuthenticatedPulseRouteWithChildren
+  '/_authenticated/saved': typeof AuthenticatedSavedRoute
   '/_authenticated/voice': typeof AuthenticatedVoiceRoute
   '/api/chat': typeof ApiChatRoute
   '/_authenticated/pulse/$symbol': typeof AuthenticatedPulseSymbolRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/lens'
     | '/profile'
     | '/pulse'
+    | '/saved'
     | '/voice'
     | '/api/chat'
     | '/pulse/$symbol'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/daily'
     | '/lens'
     | '/profile'
+    | '/saved'
     | '/voice'
     | '/api/chat'
     | '/pulse/$symbol'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/_authenticated/lens'
     | '/_authenticated/profile'
     | '/_authenticated/pulse'
+    | '/_authenticated/saved'
     | '/_authenticated/voice'
     | '/api/chat'
     | '/_authenticated/pulse/$symbol'
@@ -247,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/voice'
       fullPath: '/voice'
       preLoaderRoute: typeof AuthenticatedVoiceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/saved': {
+      id: '/_authenticated/saved'
+      path: '/saved'
+      fullPath: '/saved'
+      preLoaderRoute: typeof AuthenticatedSavedRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/pulse': {
@@ -320,6 +339,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLensRoute: typeof AuthenticatedLensRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedPulseRoute: typeof AuthenticatedPulseRouteWithChildren
+  AuthenticatedSavedRoute: typeof AuthenticatedSavedRoute
   AuthenticatedVoiceRoute: typeof AuthenticatedVoiceRoute
 }
 
@@ -329,6 +349,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLensRoute: AuthenticatedLensRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedPulseRoute: AuthenticatedPulseRouteWithChildren,
+  AuthenticatedSavedRoute: AuthenticatedSavedRoute,
   AuthenticatedVoiceRoute: AuthenticatedVoiceRoute,
 }
 
@@ -346,3 +367,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
