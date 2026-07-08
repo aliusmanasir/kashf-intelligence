@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AppHeader, KashfMark } from "@/components/BottomTabs";
+import { AppHeader } from "@/components/BottomTabs";
 import { KashfMarkSvg } from "@/components/KashfLogo";
 import {
   listPublishedEpisodes,
@@ -50,7 +50,6 @@ function KashfVoice() {
                 <Settings className="h-4 w-4" />
               </Link>
             )}
-            <KashfMark />
           </div>
         }
       />
