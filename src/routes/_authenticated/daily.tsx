@@ -333,6 +333,19 @@ function KashfDaily() {
                       onToggleSave={() => toggleSave(s)}
                       onAskLens={() => askLensAbout(s)}
                       onExpand={() => trackExpand(s)}
+                      onOpen={() => {
+                        if (typeof window !== "undefined") {
+                          window.sessionStorage.setItem(
+                            `kashf_story_${s.id}`,
+                            JSON.stringify(s),
+                          );
+                        }
+                        trackExpand(s);
+                        navigate({
+                          to: "/story/$id",
+                          params: { id: s.id },
+                        });
+                      }}
                     />
                   ))}
                 </ol>
@@ -369,6 +382,7 @@ function StoryCard({
   onToggleSave,
   onAskLens,
   onExpand,
+  onOpen,
 }: {
   story: GeneratedStory;
   index: number;
@@ -376,6 +390,7 @@ function StoryCard({
   onToggleSave: () => void;
   onAskLens: () => void;
   onExpand: () => void;
+  onOpen: () => void;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -415,7 +430,7 @@ function StoryCard({
             )}
           </div>
           <div className="mt-3 flex items-center justify-between px-5 pb-3 text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">
-            <span>{open ? "Collapse" : "Read more"}</span>
+            <span>{open ? "Collapse" : "Preview"}</span>
             <ChevronDown
               className={
                 "h-3.5 w-3.5 transition-transform " + (open ? "rotate-180" : "")
@@ -456,6 +471,16 @@ function StoryCard({
               <p className="text-[15px] leading-[1.65] text-foreground/85">
                 {story.summary}
               </p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpen();
+                }}
+                className="mt-4 inline-flex w-full items-center justify-between rounded-xl border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/15"
+              >
+                <span>Open full story</span>
+                <ArrowUpRight className="h-4 w-4" />
+              </button>
               <div className="mt-4 rounded-xl border border-border/70 bg-background/60 p-4">
                 <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">
                   Why it matters
