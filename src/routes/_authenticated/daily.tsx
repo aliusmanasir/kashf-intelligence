@@ -333,6 +333,19 @@ function KashfDaily() {
                       onToggleSave={() => toggleSave(s)}
                       onAskLens={() => askLensAbout(s)}
                       onExpand={() => trackExpand(s)}
+                      onOpen={() => {
+                        if (typeof window !== "undefined") {
+                          window.sessionStorage.setItem(
+                            `kashf_story_${s.id}`,
+                            JSON.stringify(s),
+                          );
+                        }
+                        trackExpand(s);
+                        navigate({
+                          to: "/story/$id",
+                          params: { id: s.id },
+                        });
+                      }}
                     />
                   ))}
                 </ol>
