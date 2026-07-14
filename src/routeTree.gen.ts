@@ -19,6 +19,7 @@ import { Route as AuthenticatedVoiceRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedSavedRouteImport } from './routes/_authenticated/saved'
 import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pro'
 import { Route as AuthenticatedLensRouteImport } from './routes/_authenticated/lens'
 import { Route as AuthenticatedDailyRouteImport } from './routes/_authenticated/daily'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -75,6 +76,11 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProRoute = AuthenticatedProRouteImport.update({
+  id: '/pro',
+  path: '/pro',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedLensRoute = AuthenticatedLensRouteImport.update({
   id: '/lens',
   path: '/lens',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/daily': typeof AuthenticatedDailyRoute
   '/lens': typeof AuthenticatedLensRoute
+  '/pro': typeof AuthenticatedProRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/pulse': typeof AuthenticatedPulseRouteWithChildren
   '/saved': typeof AuthenticatedSavedRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/daily': typeof AuthenticatedDailyRoute
   '/lens': typeof AuthenticatedLensRoute
+  '/pro': typeof AuthenticatedProRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/saved': typeof AuthenticatedSavedRoute
   '/voice': typeof AuthenticatedVoiceRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/daily': typeof AuthenticatedDailyRoute
   '/_authenticated/lens': typeof AuthenticatedLensRoute
+  '/_authenticated/pro': typeof AuthenticatedProRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/pulse': typeof AuthenticatedPulseRouteWithChildren
   '/_authenticated/saved': typeof AuthenticatedSavedRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/daily'
     | '/lens'
+    | '/pro'
     | '/profile'
     | '/pulse'
     | '/saved'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/daily'
     | '/lens'
+    | '/pro'
     | '/profile'
     | '/saved'
     | '/voice'
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/daily'
     | '/_authenticated/lens'
+    | '/_authenticated/pro'
     | '/_authenticated/profile'
     | '/_authenticated/pulse'
     | '/_authenticated/saved'
@@ -294,6 +306,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pro': {
+      id: '/_authenticated/pro'
+      path: '/pro'
+      fullPath: '/pro'
+      preLoaderRoute: typeof AuthenticatedProRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/lens': {
       id: '/_authenticated/lens'
       path: '/lens'
@@ -356,6 +375,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDailyRoute: typeof AuthenticatedDailyRoute
   AuthenticatedLensRoute: typeof AuthenticatedLensRoute
+  AuthenticatedProRoute: typeof AuthenticatedProRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedPulseRoute: typeof AuthenticatedPulseRouteWithChildren
   AuthenticatedSavedRoute: typeof AuthenticatedSavedRoute
@@ -367,6 +387,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDailyRoute: AuthenticatedDailyRoute,
   AuthenticatedLensRoute: AuthenticatedLensRoute,
+  AuthenticatedProRoute: AuthenticatedProRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedPulseRoute: AuthenticatedPulseRouteWithChildren,
   AuthenticatedSavedRoute: AuthenticatedSavedRoute,

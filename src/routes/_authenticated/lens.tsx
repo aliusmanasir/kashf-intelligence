@@ -1,11 +1,18 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { AppHeader, KashfMark } from "@/components/BottomTabs";
-import { ArrowUp, Sparkle, X } from "lucide-react";
+import { ArrowUp, Sparkle, X, Lock } from "lucide-react";
 import { z } from "zod";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  consumeLensMessage,
+  getLensQuota,
+  type LensQuota,
+} from "@/lib/pro.functions";
 
 export const Route = createFileRoute("/_authenticated/lens")({
   head: () => ({
@@ -39,10 +46,20 @@ function KashfLens() {
   const { messages, sendMessage, status, error } = useChat({ transport });
   const [input, setInput] = useState("");
   const [article, setArticle] = useState<LensContext | null>(null);
+  const [paywall, setPaywall] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const isLoading = status === "submitted" || status === "streaming";
+
+  const fetchQuota = useServerFn(getLensQuota);
+  const doConsume = useServerFn(consumeLensMessage);
+  const qc = useQueryClient();
+  const quotaQuery = useQuery<LensQuota>({
+    queryKey: ["lens-quota"],
+    queryFn: () => fetchQuota(),
+    staleTime: 30_000,
+  });
 
   // Pull article context handed off from Kashf Daily
   useEffect(() => {
@@ -81,6 +98,17 @@ function KashfLens() {
   const submit = async (text: string) => {
     const t = text.trim();
     if (!t || isLoading) return;
+    // Enforce free-tier quota
+    try {
+      const q = await doConsume();
+      qc.setQueryData(["lens-quota"], q);
+      if (!q.allowed) {
+        setPaywall(true);
+        return;
+      }
+    } catch {
+      // Fail-open: still allow send if quota check fails
+    }
     let payload = t;
     // Inject article context once on the first send
     if (article && messages.length === 0) {
@@ -93,6 +121,21 @@ function KashfLens() {
   return (
     <div className="flex h-[100dvh] flex-col">
       <AppHeader eyebrow="AI analyst" title="Kashf Lens" right={<KashfMark />} />
+
+      {quotaQuery.data && !quotaQuery.data.isPro && (
+        <div className="mx-auto flex w-full max-w-md items-center justify-between gap-2 px-5 pt-2 text-[11px]">
+          <span className="font-mono uppercase tracking-[0.18em] text-muted-foreground">
+            {quotaQuery.data.remaining} / {quotaQuery.data.limit} today
+          </span>
+          <Link
+            to="/pro"
+            className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 font-mono uppercase tracking-[0.18em] text-primary"
+          >
+            <Sparkle className="h-3 w-3" />
+            Unlimited with Pro
+          </Link>
+        </div>
+      )}
 
       <div ref={scrollerRef} className="flex-1 overflow-y-auto px-5 pb-40 pt-4">
         {article && (
@@ -148,6 +191,53 @@ function KashfLens() {
           </button>
         </div>
       </form>
+      {paywall && (
+        <PaywallModal
+          quota={quotaQuery.data}
+          onClose={() => setPaywall(false)}
+          onUpgrade={() => navigate({ to: "/pro" })}
+        />
+      )}
+    </div>
+  );
+}
+
+function PaywallModal({
+  quota,
+  onClose,
+  onUpgrade,
+}: {
+  quota: LensQuota | undefined;
+  onClose: () => void;
+  onUpgrade: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
+      <div className="w-full max-w-md rounded-t-3xl border border-border bg-card p-6 sm:rounded-3xl">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 text-primary">
+          <Lock className="h-5 w-5" />
+        </div>
+        <h2 className="mt-4 text-center font-display text-xl font-semibold tracking-tight text-foreground">
+          You&apos;ve reached today&apos;s Lens limit
+        </h2>
+        <p className="mt-2 text-center text-sm text-muted-foreground">
+          Free plan includes {quota?.limit ?? 15} Lens messages per day. Upgrade to Kashf
+          Pro for unlimited AI-powered financial guidance.
+        </p>
+        <button
+          onClick={onUpgrade}
+          className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground"
+        >
+          <Sparkle className="h-4 w-4" />
+          See Kashf Pro
+        </button>
+        <button
+          onClick={onClose}
+          className="mt-2 inline-flex w-full items-center justify-center rounded-xl border border-border bg-background/40 py-2.5 text-sm text-muted-foreground"
+        >
+          Maybe later
+        </button>
+      </div>
     </div>
   );
 }
