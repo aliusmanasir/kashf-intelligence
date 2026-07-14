@@ -462,3 +462,38 @@ function IntelligencePanel() {
     </Section>
   );
 }
+
+function ProUpgradePanel() {
+  const fetchStatus = useServerFn(getMyProStatus);
+  const { data } = useQuery<ProStatus>({
+    queryKey: ["pro-status"],
+    queryFn: () => fetchStatus(),
+  });
+  const isPro = data?.isPro ?? false;
+
+  return (
+    <Section title="Kashf Pro">
+      <Link
+        to="/pro"
+        className="flex items-center gap-3 px-5 py-4 transition-colors hover:bg-background/40"
+      >
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/40 bg-primary/10 text-primary">
+          <Sparkle className="h-4 w-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-foreground">
+            {isPro ? "You're on Kashf Pro" : "Go beyond the headlines"}
+          </p>
+          <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
+            {isPro
+              ? data?.status === "trialing"
+                ? "Free trial active — manage subscription"
+                : "Manage your subscription"
+              : "Unlimited Lens, portfolio intelligence, weekly signal"}
+          </p>
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </Link>
+    </Section>
+  );
+}
