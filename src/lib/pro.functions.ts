@@ -46,7 +46,7 @@ export const getMyProStatus = createServerFn({ method: "GET" })
       .maybeSingle();
     return {
       isPro: computeIsPro(data as never),
-      status: ((data?.status ?? "inactive") as ProStatus["status"]) ?? "inactive",
+      status: (data?.status as ProStatus["status"]) ?? "inactive",
       plan: ((data?.plan as ProStatus["plan"]) ?? null),
       trialEnd: (data?.trial_end as string | null) ?? null,
       currentPeriodEnd: (data?.current_period_end as string | null) ?? null,
