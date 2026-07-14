@@ -34,6 +34,8 @@ import {
   type EditionSlot,
   type FeedCategory,
 } from "@/lib/personalization";
+import { LockedCard } from "@/components/LockedCard";
+import { getMyProStatus, type ProStatus } from "@/lib/pro.functions";
 
 export const Route = createFileRoute("/_authenticated/daily")({
   head: () => ({
@@ -54,6 +56,7 @@ function KashfDaily() {
   const doSave = useServerFn(saveStory);
   const doUnsave = useServerFn(unsaveStory);
   const fetchSavedIds = useServerFn(listSavedStoryIds);
+  const fetchProStatus = useServerFn(getMyProStatus);
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [slot, setSlot] = useState<EditionSlot>("morning");
@@ -68,6 +71,12 @@ function KashfDaily() {
     queryFn: () => fetchSavedIds(),
     staleTime: 60_000,
   });
+  const proStatusQuery = useQuery<ProStatus>({
+    queryKey: ["pro-status"],
+    queryFn: () => fetchProStatus(),
+    staleTime: 60_000,
+  });
+  const isPro = proStatusQuery.data?.isPro ?? false;
   const savedSet = useMemo(
     () => new Set(savedIdsQuery.data ?? []),
     [savedIdsQuery.data],
@@ -310,6 +319,15 @@ function KashfDaily() {
 
       {query.data && (
         <div className="mt-6 space-y-8 px-5">
+          {!isPro && (
+            <div className="grid gap-3">
+              <LockedCard
+                eyebrow="Kashf Signal · Weekly"
+                title="Three things to watch this week"
+                teaser="The setup, the catalyst, and the risk — for the three moves that matter most across Gulf markets."
+              />
+            </div>
+          )}
           {FEED_CATEGORIES.map((cat) => {
             const items = grouped.get(cat.id) ?? [];
             if (items.length === 0) return null;
