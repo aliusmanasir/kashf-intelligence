@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, BookmarkCheck, LogOut, Activity, ChevronRight } from "lucide-react";
+import { ArrowLeft, BookmarkCheck, LogOut, Activity, ChevronRight, Sparkle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -19,6 +19,7 @@ import {
   REGION_PRESETS,
   type RegionPreset,
 } from "@/lib/personalization";
+import { getMyProStatus, type ProStatus } from "@/lib/pro.functions";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "Profile — Kashf" }] }),
@@ -145,6 +146,7 @@ function ProfilePage() {
 
       <PreferencesPanel onSaved={() => flash("ok", "Preferences saved.")} />
       <IntelligencePanel />
+      <ProUpgradePanel />
 
       <Section title="Profile">
         <form onSubmit={saveName} className="space-y-3 p-4">
